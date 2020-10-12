@@ -73,14 +73,6 @@ func (consumer *SaramaConsumerHandler) ConsumeClaim(session sarama.ConsumerGroup
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
 	for message := range claim.Messages() {
-
-		// Stop processing messages when context is cancelled
-		select {
-		case <-session.Context().Done():
-			return nil
-		default:
-		}
-
 		if ce := consumer.logger.Desugar().Check(zap.DebugLevel, "debugging"); ce != nil {
 			consumer.logger.Debugw("Message claimed", zap.String("topic", message.Topic), zap.Binary("value", message.Value))
 		}

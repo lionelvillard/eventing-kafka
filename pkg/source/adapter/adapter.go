@@ -96,7 +96,7 @@ func (a *Adapter) Start(ctx context.Context) error {
 	config.Consumer.Fetch.Default = 1024 * 4 // 4k
 
 	consumerGroupFactory := consumer.NewConsumerGroupFactory(addrs, config)
-	group, err := consumerGroupFactory.StartConsumerGroup(ctx, a.config.ConsumerGroup, a.config.Topics, a.logger, a)
+	group, err := consumerGroupFactory.StartConsumerGroup(ctx, a.config.ConsumerGroup, a.config.Topics, a.logger, NewRateLimiter(4, a.Handle))
 	if err != nil {
 		panic(err)
 	}
