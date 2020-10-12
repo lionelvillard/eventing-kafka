@@ -77,7 +77,7 @@ func (consumer *SaramaConsumerHandler) ConsumeClaim(session sarama.ConsumerGroup
 			consumer.logger.Debugw("Message claimed", zap.String("topic", message.Topic), zap.Binary("value", message.Value))
 		}
 
-		mustMark, err := consumer.handler.Handle(session.Context(), message)
+		mustMark, err := consumer.handler.Handle(context.Background(), message)
 
 		if err != nil {
 			consumer.logger.Infow("Failure while handling a message", zap.String("topic", message.Topic), zap.Int32("partition", message.Partition), zap.Int64("offset", message.Offset), zap.Error(err))
@@ -91,6 +91,8 @@ func (consumer *SaramaConsumerHandler) ConsumeClaim(session sarama.ConsumerGroup
 		}
 
 	}
+
+	session.Commit()
 
 	consumer.logger.Infof("Stopping partition consumer, topic: %s, partition: %d", claim.Topic(), claim.Partition())
 	return nil
