@@ -61,5 +61,11 @@ func (cs *KafkaChannelSpec) Validate(ctx context.Context) *apis.FieldError {
 			errs = errs.Also(fe.ViaField(fmt.Sprintf("subscriber[%d]", i)).ViaField("subscribable"))
 		}
 	}
+
+	if cs.Delivery != nil {
+		fe := cs.Delivery.Validate(ctx)
+		errs = errs.Also(fe)
+	}
+
 	return errs
 }

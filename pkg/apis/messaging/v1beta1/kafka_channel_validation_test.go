@@ -20,10 +20,13 @@ import (
 	"context"
 	"testing"
 
+	"k8s.io/utils/pointer"
+
 	"github.com/google/go-cmp/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/webhook/resourcesemantics"
 
+	duckv1 "knative.dev/eventing/pkg/apis/duck/v1"
 	eventingduck "knative.dev/eventing/pkg/apis/duck/v1"
 	"knative.dev/eventing/pkg/apis/eventing"
 	"knative.dev/pkg/apis"
@@ -148,6 +151,22 @@ func TestKafkaChannelValidation(t *testing.T) {
 				fe.Details = "expected either 'cluster' or 'namespace'"
 				return fe
 			}(),
+		},
+		"Valid delivery spec": {
+			cr: &KafkaChannel{
+				Spec: KafkaChannelSpec{
+					NumPartitions:     1,
+					ReplicationFactor: 1,
+					ChannelableSpec: eventingduck.ChannelableSpec{
+						Delivery: &duckv1.DeliverySpec{
+							Retry:         pointer.Int32Ptr(10),
+							BackoffPolicy: (*duckv1.BackoffPolicyType)(pointer.StringPtr(string(duckv1.BackoffPolicyExponential))),
+							BackoffDelay:  pointer.StringPtr("PT0.1S"),
+						},
+					},
+				},
+			},
+			want: nil,
 		},
 	}
 

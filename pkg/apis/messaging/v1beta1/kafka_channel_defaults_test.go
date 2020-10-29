@@ -19,6 +19,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
+	duckv1 "knative.dev/eventing/pkg/apis/duck/v1"
+
 	"knative.dev/eventing-kafka/pkg/common/constants"
 )
 
@@ -41,6 +44,13 @@ func TestKafkaChannelDefaults(t *testing.T) {
 				Spec: KafkaChannelSpec{
 					NumPartitions:     constants.DefaultNumPartitions,
 					ReplicationFactor: constants.DefaultReplicationFactor,
+					ChannelableSpec: duckv1.ChannelableSpec{
+						Delivery: &duckv1.DeliverySpec{
+							Retry:         pointer.Int32Ptr(10),
+							BackoffPolicy: (*duckv1.BackoffPolicyType)(pointer.StringPtr(string(duckv1.BackoffPolicyExponential))),
+							BackoffDelay:  pointer.StringPtr("PT0.1S"),
+						},
+					},
 				},
 			},
 		},
@@ -57,6 +67,13 @@ func TestKafkaChannelDefaults(t *testing.T) {
 				Spec: KafkaChannelSpec{
 					NumPartitions:     constants.DefaultNumPartitions,
 					ReplicationFactor: testReplicationFactor,
+					ChannelableSpec: duckv1.ChannelableSpec{
+						Delivery: &duckv1.DeliverySpec{
+							Retry:         pointer.Int32Ptr(10),
+							BackoffPolicy: (*duckv1.BackoffPolicyType)(pointer.StringPtr(string(duckv1.BackoffPolicyExponential))),
+							BackoffDelay:  pointer.StringPtr("PT0.1S"),
+						},
+					},
 				},
 			},
 		},
@@ -73,6 +90,39 @@ func TestKafkaChannelDefaults(t *testing.T) {
 				Spec: KafkaChannelSpec{
 					NumPartitions:     testNumPartitions,
 					ReplicationFactor: constants.DefaultReplicationFactor,
+					ChannelableSpec: duckv1.ChannelableSpec{
+						Delivery: &duckv1.DeliverySpec{
+							Retry:         pointer.Int32Ptr(10),
+							BackoffPolicy: (*duckv1.BackoffPolicyType)(pointer.StringPtr(string(duckv1.BackoffPolicyExponential))),
+							BackoffDelay:  pointer.StringPtr("PT0.1S"),
+						},
+					},
+				},
+			},
+		},
+		"retry set": {
+			initial: KafkaChannel{
+				Spec: KafkaChannelSpec{
+					NumPartitions: testNumPartitions,
+					ChannelableSpec: duckv1.ChannelableSpec{
+						Delivery: &duckv1.DeliverySpec{
+							Retry: pointer.Int32Ptr(10),
+						},
+					},
+				},
+			},
+			expected: KafkaChannel{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{"messaging.knative.dev/subscribable": "v1"},
+				},
+				Spec: KafkaChannelSpec{
+					NumPartitions:     testNumPartitions,
+					ReplicationFactor: constants.DefaultReplicationFactor,
+					ChannelableSpec: duckv1.ChannelableSpec{
+						Delivery: &duckv1.DeliverySpec{
+							Retry: pointer.Int32Ptr(10),
+						},
+					},
 				},
 			},
 		},

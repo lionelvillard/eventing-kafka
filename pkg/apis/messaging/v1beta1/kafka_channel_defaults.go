@@ -19,6 +19,10 @@ package v1beta1
 import (
 	"context"
 
+	"k8s.io/utils/pointer"
+
+	duckv1 "knative.dev/eventing/pkg/apis/duck/v1"
+
 	"knative.dev/eventing-kafka/pkg/common/constants"
 	"knative.dev/eventing/pkg/apis/messaging"
 )
@@ -45,5 +49,18 @@ func (cs *KafkaChannelSpec) SetDefaults(ctx context.Context) {
 	}
 	if cs.ReplicationFactor == 0 {
 		cs.ReplicationFactor = constants.DefaultReplicationFactor
+	}
+
+	if cs.Delivery == nil {
+		cs.Delivery = &duckv1.DeliverySpec{}
+	}
+
+	if cs.Delivery.Retry == nil {
+		// Let's pick a default that a least cover the upgrade scenario.
+		// While there is no upper-bound on how long it takes for a
+		// subscriber to be back online, 10 seconds should be more than enough
+		cs.Delivery.Retry = pointer.Int32Ptr(10)
+		cs.Delivery.BackoffPolicy = (*duckv1.BackoffPolicyType)(pointer.StringPtr(string(duckv1.BackoffPolicyExponential)))
+		cs.Delivery.BackoffDelay = pointer.StringPtr("PT0.1S")
 	}
 }
